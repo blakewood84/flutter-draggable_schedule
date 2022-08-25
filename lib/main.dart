@@ -102,17 +102,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     return DragTarget(
                       onAccept: (Map<String, dynamic> data) {
                         final oldTime = data['time'];
-                        print('OLD TIME: $oldTime');
 
                         final newData = {
                           ...data,
                           'time': row,
                         };
-                        print('New Data: $newData');
 
                         final index =
                             schedules.indexWhere((e) => e['time'] == oldTime);
-                        print('INDEX: $index');
 
                         setState(() {
                           schedules.removeWhere((e) => e['time'] == oldTime);
