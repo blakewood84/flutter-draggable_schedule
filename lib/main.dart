@@ -1,17 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-const rows = [
-  '8am',
-  '9am',
-  '10am',
-  '11am',
-  '12pm',
-  '1pm',
-  '2pm',
-  '3pm',
-  '4pm',
-  '5pm',
-];
+import 'package:drag_and_drop/providers/schedule.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,7 +18,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(),
+      home: ChangeNotifierProvider(
+        create: (context) => ScheduleProvider(),
+        child: const MyHomePage(),
+      ),
     );
   }
 }
@@ -41,30 +34,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final schedules = <Map<String, dynamic>>[
-    {
-      'time': '8am',
-      'tech': 'Bob',
-      'details': 'Bob is cool',
-      'color': Colors.redAccent
-    },
-    {
-      'time': '2pm',
-      'tech': 'Allen',
-      'details': 'Allen is cool',
-      'color': Colors.blueAccent
-    },
-    {
-      'time': '5pm',
-      'tech': 'James',
-      'details': 'James is cool',
-      'color': Colors.orangeAccent
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final schedules = context.watch<ScheduleProvider>().schedules;
+
     return Scaffold(
       body: SafeArea(
         child: SizedBox(
@@ -83,77 +57,13 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 20),
               Expanded(
                 child: ListView.builder(
-                  itemCount: rows.length,
+                  itemCount: schedules.length,
                   itemBuilder: (context, index) {
-                    final row = rows[index];
-                    final schedule = schedules.firstWhere(
-                        (e) => e['time'] == row,
-                        orElse: () => <String, dynamic>{});
+                    final row = schedules[index];
 
-                    final widget = schedule.isNotEmpty
-                        ? ScheduleColumn(
-                            color: schedule['color'] as Color?,
-                            name: schedule['tech'] as String?,
-                            description: schedule['details'] as String?,
-                            time: row,
-                          )
-                        : null;
-
-                    return DragTarget(
-                      onAccept: (Map<String, dynamic> data) {
-                        final oldTime = data['time'];
-
-                        final newData = {
-                          ...data,
-                          'time': row,
-                        };
-
-                        final index =
-                            schedules.indexWhere((e) => e['time'] == oldTime);
-
-                        setState(() {
-                          schedules.removeWhere((e) => e['time'] == oldTime);
-
-                          schedules.insert(index, newData);
-                        });
-                      },
-                      onWillAccept: (data) {
-                        return true;
-                      },
-                      builder: (context, candidateData, rejectedData) {
-                        return Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: index == 0
-                                  ? const BorderSide(
-                                      width: 1,
-                                      color: Colors.black,
-                                    )
-                                  : BorderSide.none,
-                              bottom: const BorderSide(
-                                width: 1,
-                                color: Colors.black,
-                              ),
-                              left: const BorderSide(
-                                width: 1,
-                                color: Colors.black,
-                              ),
-                              right: const BorderSide(
-                                width: 1,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          child: Center(
-                            child: Row(
-                              children: [
-                                // TODO: Allow for a Row of Widgets here
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                    return ScheduleRowUI(
+                      index: index,
+                      row: row,
                     );
                   },
                 ),
@@ -166,42 +76,154 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class ScheduleColumn extends StatelessWidget {
-  const ScheduleColumn({
-    required this.time,
-    required this.color,
-    required this.name,
-    required this.description,
+class ScheduleRowUI extends StatefulWidget {
+  const ScheduleRowUI({
+    required this.index,
+    required this.row,
     Key? key,
   }) : super(key: key);
 
-  final String? name;
-  final String? description;
-  final Color? color;
-  final String? time;
+  final int index;
+  final ScheduleRow row;
+
+  @override
+  State<ScheduleRowUI> createState() => _ScheduleRowUIState();
+}
+
+class _ScheduleRowUIState extends State<ScheduleRowUI> {
+  @override
+  Widget build(BuildContext context) {
+    return DragTarget<ScheduleChipUI>(
+      onAccept: (data) {
+        // final oldScheduleChip = data;
+
+        // final newScheduleChip = ScheduleChip(
+        //   id: data.id,
+        //   time: widget.row.time,
+        //   name: data.name,
+        //   details: data.details,
+        //   color: data.color,
+        // );
+
+        // context.read<ScheduleProvider>().updateSchedule(
+        //       oldScheduleChip,
+        //       newScheduleChip,
+        //     );
+      },
+      onWillAccept: (data) {
+        return data is ScheduleChipUI;
+      },
+      onAcceptWithDetails: (details) {
+        print(details.offset);
+      },
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          height: 100,
+          decoration: BoxDecoration(
+            border: Border(
+              top: widget.index == 0
+                  ? const BorderSide(
+                      width: 1,
+                      color: Colors.black,
+                    )
+                  : BorderSide.none,
+              bottom: const BorderSide(
+                width: 1,
+                color: Colors.black,
+              ),
+              left: const BorderSide(
+                width: 1,
+                color: Colors.black,
+              ),
+              right: const BorderSide(
+                width: 1,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          child: Center(
+            child: ValueListenableBuilder(
+              valueListenable: widget.row.rows,
+              builder: (context, List<ScheduleChipUI> list, child) {
+                return Column(
+                  children: [
+                    Container(
+                      height: 20,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        border: Border.all(
+                          width: 1,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          widget.row.time.toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [...list],
+                    )
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ScheduleChipUI extends StatelessWidget {
+  const ScheduleChipUI({
+    required this.scheduleChip,
+    Key? key,
+  }) : super(key: key);
+
+  final ScheduleChip scheduleChip;
 
   @override
   Widget build(BuildContext context) {
-    return Draggable(
-      data: {
-        'color': color,
-        'tech': name,
-        'details': description,
-        'time': time,
-      },
+    // final renderBox = context.findRenderObject() as RenderBox;
+    // final offset = renderBox.localToGlobal(Offset.zero);
+    // print('OFFSET: $offset');
+
+    return Draggable<ScheduleChip>(
+      data: scheduleChip,
       feedback: Material(
         child: Container(
           width: 100,
-          height: 50,
-          color: color?.withOpacity(.5),
+          height: 70,
+          color: scheduleChip.color.withOpacity(.5),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(name.toString()),
               Text(
-                description.toString(),
+                scheduleChip.time.toString(),
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
+                  color: Colors.black,
+                ),
+              ),
+              Text(
+                scheduleChip.name.toString(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black,
+                ),
+              ),
+              Text(
+                scheduleChip.details.toString(),
+                style: const TextStyle(
+                  fontSize: 12,
                   color: Colors.black,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -212,16 +234,30 @@ class ScheduleColumn extends StatelessWidget {
       ),
       child: Container(
         width: 100,
-        height: 50,
-        color: color,
+        height: 70,
+        color: scheduleChip.color,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(name.toString()),
             Text(
-              description.toString(),
+              scheduleChip.time.toString(),
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              scheduleChip.name.toString(),
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              scheduleChip.details.toString(),
+              style: const TextStyle(
+                fontSize: 12,
                 color: Colors.black,
                 overflow: TextOverflow.ellipsis,
               ),
