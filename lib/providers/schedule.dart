@@ -65,19 +65,21 @@ class ScheduleChip {
 class ScheduleRow {
   ScheduleRow({required this.time, required List<ScheduleChip> rows})
       : rows = ValueNotifier<List<ScheduleChipUI>>(
-          [for (final row in rows) ScheduleChipUI(scheduleChip: row)],
+          [for (final row in rows) ScheduleChipUI(data: row)],
         );
 
   final String time;
   final ValueNotifier<List<ScheduleChipUI>> rows;
 
-  // void addRow(ScheduleChip scheduleChip) {
-  //   rows.value.add(scheduleChip);
-  // }
+  void addRow(ScheduleChipUI scheduleChip) {
+    rows.value.add(scheduleChip);
+  }
 
-  // void removeRow(ScheduleChip scheduleChip) {
-  //   rows.value.removeWhere((element) => element.id == scheduleChip.id);
-  // }
+  void removeRow(ScheduleChipUI scheduleChip) {
+    rows.value.removeWhere(
+      (element) => element.data.id == scheduleChip.data.id,
+    );
+  }
 }
 
 class ScheduleProvider extends ChangeNotifier {
@@ -91,19 +93,21 @@ class ScheduleProvider extends ChangeNotifier {
     return ScheduleRow(time: time, rows: start != null ? [start] : []);
   });
 
-  // void updateSchedule(
-  //     ScheduleChip oldScheduleChip, ScheduleChip newScheduleChip) {
-  //   // Remove from old row
-  //   final scheduleToRemoveFrom = schedules
-  //       .singleWhere((schedule) => schedule.time == oldScheduleChip.time);
-  //   scheduleToRemoveFrom.removeRow(oldScheduleChip);
+  void updateSchedule(
+    ScheduleChipUI oldScheduleChip,
+    ScheduleChipUI newScheduleChip,
+  ) {
+    // Remove from old row
+    final scheduleToRemoveFrom = schedules
+        .singleWhere((schedule) => schedule.time == oldScheduleChip.data.time);
+    scheduleToRemoveFrom.removeRow(oldScheduleChip);
 
-  //   // Add to new ro
-  //   final scheduleToUpdate = schedules
-  //       .singleWhere((schedule) => schedule.time == newScheduleChip.time);
-  //   scheduleToUpdate.addRow(newScheduleChip);
+    // Add to new ro
+    final scheduleToUpdate = schedules
+        .singleWhere((schedule) => schedule.time == newScheduleChip.data.time);
+    scheduleToUpdate.addRow(newScheduleChip);
 
-  //   // schedules.add(Schedu);
-  //   notifyListeners();
-  // }
+    // schedules.add(Schedu);
+    notifyListeners();
+  }
 }

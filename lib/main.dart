@@ -94,21 +94,23 @@ class _ScheduleRowUIState extends State<ScheduleRowUI> {
   @override
   Widget build(BuildContext context) {
     return DragTarget<ScheduleChipUI>(
-      onAccept: (data) {
-        // final oldScheduleChip = data;
+      onAccept: (ScheduleChipUI chipUI) {
+        final oldScheduleChip = chipUI;
 
-        // final newScheduleChip = ScheduleChip(
-        //   id: data.id,
-        //   time: widget.row.time,
-        //   name: data.name,
-        //   details: data.details,
-        //   color: data.color,
-        // );
+        final chip = ScheduleChip(
+          id: chipUI.data.id,
+          time: widget.row.time,
+          name: chipUI.data.name,
+          details: chipUI.data.details,
+          color: chipUI.data.color,
+        );
 
-        // context.read<ScheduleProvider>().updateSchedule(
-        //       oldScheduleChip,
-        //       newScheduleChip,
-        //     );
+        final newScheduleChip = ScheduleChipUI(data: chip);
+
+        context.read<ScheduleProvider>().updateSchedule(
+              oldScheduleChip,
+              newScheduleChip,
+            );
       },
       onWillAccept: (data) {
         return data is ScheduleChipUI;
@@ -184,11 +186,11 @@ class _ScheduleRowUIState extends State<ScheduleRowUI> {
 
 class ScheduleChipUI extends StatelessWidget {
   const ScheduleChipUI({
-    required this.scheduleChip,
+    required this.data,
     Key? key,
   }) : super(key: key);
 
-  final ScheduleChip scheduleChip;
+  final ScheduleChip data;
 
   @override
   Widget build(BuildContext context) {
@@ -196,32 +198,32 @@ class ScheduleChipUI extends StatelessWidget {
     // final offset = renderBox.localToGlobal(Offset.zero);
     // print('OFFSET: $offset');
 
-    return Draggable<ScheduleChip>(
-      data: scheduleChip,
+    return Draggable<ScheduleChipUI>(
+      data: this,
       feedback: Material(
         child: Container(
           width: 100,
           height: 70,
-          color: scheduleChip.color.withOpacity(.5),
+          color: data.color.withOpacity(.5),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                scheduleChip.time.toString(),
+                data.time.toString(),
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.black,
                 ),
               ),
               Text(
-                scheduleChip.name.toString(),
+                data.name.toString(),
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.black,
                 ),
               ),
               Text(
-                scheduleChip.details.toString(),
+                data.details.toString(),
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.black,
@@ -235,12 +237,12 @@ class ScheduleChipUI extends StatelessWidget {
       child: Container(
         width: 100,
         height: 70,
-        color: scheduleChip.color,
+        color: data.color,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              scheduleChip.time.toString(),
+              data.time.toString(),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.black,
@@ -248,14 +250,14 @@ class ScheduleChipUI extends StatelessWidget {
               ),
             ),
             Text(
-              scheduleChip.name.toString(),
+              data.name.toString(),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.black,
               ),
             ),
             Text(
-              scheduleChip.details.toString(),
+              data.details.toString(),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.black,
