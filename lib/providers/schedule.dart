@@ -15,6 +15,8 @@ const calendarRows = [
   '5pm',
 ];
 
+const technicians = <String>['Bob', 'Allen', 'James'];
+
 const calendarStart = [
   ScheduleChip(
     id: '1',
@@ -83,14 +85,20 @@ class ScheduleRow {
 }
 
 class ScheduleProvider extends ChangeNotifier {
+  final technicians = [
+    {'name': 'Bob', 'color': Colors.blue},
+    {'name': 'Bob', 'color': Colors.orange},
+    {'name': 'Bob', 'color': Colors.green}
+  ];
   final schedules = List<ScheduleRow>.generate(calendarRows.length, (index) {
     final time = calendarRows[index];
 
-    final start = calendarStart.singleWhereOrNull(
-      (element) => element.time == time,
-    );
+    // final start = calendarStart.singleWhereOrNull(
+    //   (element) => element.time == time,
+    // );
 
-    return ScheduleRow(time: time, rows: start != null ? [start] : []);
+    // return ScheduleRow(time: time, rows: start != null ? [start] : []);
+    return ScheduleRow(time: time, rows: []);
   });
 
   void updateSchedule(

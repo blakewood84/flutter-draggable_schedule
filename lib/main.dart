@@ -34,10 +34,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  double cellWidth = 75.0;
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final schedules = context.watch<ScheduleProvider>().schedules;
+    final technicians = context.watch<ScheduleProvider>().technicians;
 
     return Scaffold(
       body: SafeArea(
@@ -55,15 +58,66 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               const SizedBox(height: 20),
+              Row(
+                children: [
+                  SizedBox(width: 100),
+                  ...List.generate(calendarRows.length, (index) {
+                    final time = calendarRows[index];
+                    return Container(
+                      width: cellWidth,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      child: Center(child: Text(time)),
+                    );
+                  }).toList()
+                ],
+              ),
               Expanded(
+                // Y
                 child: ListView.builder(
-                  itemCount: schedules.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: technicians.length,
                   itemBuilder: (context, index) {
-                    final row = schedules[index];
+                    final technician = technicians[index];
 
-                    return ScheduleRowUI(
-                      index: index,
-                      row: row,
+                    return SizedBox(
+                      height: 100,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: double.infinity,
+                            decoration: BoxDecoration(
+                              color: technician['color'] as Color?,
+                              border: Border.all(
+                                width: 1,
+                                color: Colors.black,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                technician['name'].toString(),
+                              ),
+                            ),
+                          ),
+                          ...List.generate(schedules.length, (index) {
+                            return Container(
+                              width: cellWidth,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          }).toList()
+                        ],
+                      ),
                     );
                   },
                 ),
